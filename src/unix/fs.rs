@@ -8,7 +8,7 @@ use std::{
         PermissionsExt,
         chown
     },
-    path::PathBuf
+    path::Path
 };
 
 use simple_eyre::eyre::{
@@ -16,29 +16,29 @@ use simple_eyre::eyre::{
     eyre
 };
 
-use crate::fs::validation::{
-    validate_exec_user,
-    validate_gid,
-    validate_uid
+use crate::{
+    unix::permissions::PERMISSIONS, validation::{
+        fs::directory_exists, permissions::{
+            validate_exec_user,
+            validate_gid,
+            validate_uid
+        }
+    }
 };
-
-// Standard user permissions.
-pub enum PERMISSIONS {
-    // Corresponds to directory drwxr-xr-x permissions.
-    Directory = 0o40755,
-
-    // Corresponds to file -rw-r--r-- permissions.
-    File = 0o100644,
-
-    // Corresponds to executable -rwxr-x-r-x permissions.
-    Executable = 0o100755,
-}
 
 /**
  * Creates a directory with the given GID and UID. Validates that the user of this
  * command is running it as root for managing service users.
  */
-pub fn create_directory(path: PathBuf, uid: u32, gid: u32) -> Result<(), Report> {
+pub fn create_directory(path: &str, uid: u32, gid: u32) -> Result<(), Report> {
+    // Make the path absolute for simplicity's sake.
+    let path = Path::new(path).canonicalize()?;
+
+    // If the directory already exists, just return early.
+    if directory_exists(&path, uid, gid)? {
+        return Ok(())
+    }
+
     // Verify that this command is running as root.
     validate_exec_user()?;
 

@@ -3,9 +3,9 @@ use simple_eyre::eyre::Report;
 
 use crate::subcommands::add;
 
-mod fs;
 mod subcommands;
-mod user;
+mod unix;
+mod validation;
 
 fn main() -> Result<(), Report> {
     simple_eyre::install()?;

@@ -5,8 +5,10 @@ use clap::{
 use simple_eyre::eyre::Report;
 
 use crate::{
-    fs::validation::validate_directory,
-    user::user::create_user
+    unix::{
+        fs::create_directory,
+        permissions::create_user
+    },
 };
 
 pub fn def() -> Command {
@@ -17,11 +19,10 @@ pub fn def() -> Command {
 
 pub fn exec(_args: &ArgMatches) -> Result<(), Report> {
     // Verify that the /srv directory exists, and create it as root if it doesn't.
-    validate_directory("/srv", true, Some(0), Some(0))?;
+    create_directory("/srv", 0, 0)?;
 
     // Verify that the quadeploy user exists, and create it if it doesn't.
-    create_user("quadlet");
-    unimplemented!();
+    create_user("quadlet")?;
 
     // Verify that the /srv/quadlet directory exists.
     unimplemented!();
